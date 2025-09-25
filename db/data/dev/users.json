@@ -102,5 +102,21 @@
     "phone_number": "+44 7000 141414",
     "is_host": true,
     "avatar": "https://images.unsplash.com/photo-1646197879190-78a962aab29b?q=80&w=1964&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+  },
+  {
+    "first_name": "Laura",
+    "surname": "Chen",
+    "email": "laura@example.com",
+    "phone_number": "+44 7000 777777",
+    "is_host": false,
+    "avatar": "https://example.com/images/laura.jpg"
+  },
+  {
+    "first_name": "Michael",
+    "surname": "Harris",
+    "email": "michael@example.com",
+    "phone_number": "+44 7000 888888",
+    "is_host": false,
+    "avatar": "https://example.com/images/michael.jpg"
   }
 ]

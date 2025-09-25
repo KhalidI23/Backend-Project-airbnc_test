@@ -1,0 +1,26 @@
+{
+  "name": "backend-project-airbnc_test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+"scripts": {
+  "test": "echo \"Error: no test specified\" && exit 1",
+  "seed": "node db/data/dev/seed-run.js"
+},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KhalidI23/Backend-Project-airbnc_test.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/KhalidI23/Backend-Project-airbnc_test/issues"
+  },
+  "homepage": "https://github.com/KhalidI23/Backend-Project-airbnc_test#readme",
+  "dependencies": {
+    "dotenv": "^17.2.2",
+    "pg": "^8.16.3"
+  }
+}
