@@ -1,4 +1,10 @@
 const db = require("./connection");
+const format = require("pg-format");
+
+const propertyTypes = require("../data/dev/property-types.json");
+const users = require("../data/dev/users.json");
+const properties = require("../data/dev/properties.json");
+const reviews = require("../data/dev/reviews.json");
 
 async function seed() {
   try {
@@ -55,6 +61,31 @@ async function seed() {
   } finally {
     await db.end();
   }
+  await db.query(
+    format(
+      "INSERT INTO property_types (property_type, description) VALUES %L;",
+      propertyTypes.map(({ property_type, description }) => [
+        property_type,
+        description,
+      ])
+    )
+  );
+
+  await db.query(
+    format(
+      "INSERT INTO users (first_name, surname, email, phone_number, is_host, avatar) VALUES %L RETURNING user_id, email;",
+      users.map(
+        ({ first_name, surname, email, phone_number, is_host, avatar }) => [
+          first_name,
+          surname,
+          email,
+          phone_number,
+          is_host,
+          avatar,
+        ]
+      )
+    )
+  );
 }
 
 module.exports = seed;

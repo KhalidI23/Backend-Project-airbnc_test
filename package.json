@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-"scripts": {
-  "test": "echo \"Error: no test specified\" && exit 1",
-  "seed": "node db/data/dev/seed-run.js"
-},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "seed": "node db/seed-run.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/KhalidI23/Backend-Project-airbnc_test.git"
