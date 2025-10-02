@@ -1,12 +1,7 @@
-const db = require("./connection");
+const db = require("./connection.js");
 const format = require("pg-format");
 
-const propertyTypes = require("../data/dev/property-types.json");
-const users = require("../data/dev/users.json");
-const properties = require("../data/dev/properties.json");
-const reviews = require("../data/dev/reviews.json");
-
-async function seed() {
+async function seed(propertyTypes, users) {
   try {
     await db.query(`DROP TABLE IF EXISTS reviews;`);
     await db.query(`DROP TABLE IF EXISTS properties;`);
@@ -15,14 +10,14 @@ async function seed() {
 
     await db.query(`
       CREATE TABLE users (
-        user_id      SERIAL PRIMARY KEY,
-        first_name   VARCHAR NOT NULL,
-        surname      VARCHAR NOT NULL,
-        email        VARCHAR NOT NULL UNIQUE,
+        user_id SERIAL PRIMARY KEY,
+        first_name VARCHAR NOT NULL,
+        surname VARCHAR NOT NULL,
+        email VARCHAR NOT NULL UNIQUE,
         phone_number VARCHAR,
-        is_host      BOOLEAN NOT NULL DEFAULT FALSE,
-        avatar       VARCHAR,
-        created_at   TIMESTAMP NOT NULL DEFAULT NOW()
+        is_host BOOLEAN NOT NULL DEFAULT FALSE,
+        avatar VARCHAR,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
       );
     `);
 
@@ -56,36 +51,36 @@ async function seed() {
         UNIQUE (property_id, guest_id)
       );
     `);
+
+    await db.query(
+      format(
+        "INSERT INTO property_types (property_type, description) VALUES %L;",
+        propertyTypes.map(({ property_type, description }) => [
+          property_type,
+          description,
+        ])
+      )
+    );
+
+    await db.query(
+      format(
+        "INSERT INTO users (first_name, surname, email, phone_number, is_host, avatar) VALUES %L;",
+        users.map(
+          ({ first_name, surname, email, phone_number, is_host, avatar }) => [
+            first_name,
+            surname,
+            email,
+            phone_number,
+            is_host,
+            avatar,
+          ]
+        )
+      )
+    );
   } catch (err) {
-    console.error("Failed", err.message);
   } finally {
     await db.end();
   }
-  await db.query(
-    format(
-      "INSERT INTO property_types (property_type, description) VALUES %L;",
-      propertyTypes.map(({ property_type, description }) => [
-        property_type,
-        description,
-      ])
-    )
-  );
-
-  await db.query(
-    format(
-      "INSERT INTO users (first_name, surname, email, phone_number, is_host, avatar) VALUES %L RETURNING user_id, email;",
-      users.map(
-        ({ first_name, surname, email, phone_number, is_host, avatar }) => [
-          first_name,
-          surname,
-          email,
-          phone_number,
-          is_host,
-          avatar,
-        ]
-      )
-    )
-  );
 }
 
 module.exports = seed;

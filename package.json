@@ -21,6 +21,7 @@
   "homepage": "https://github.com/KhalidI23/Backend-Project-airbnc_test#readme",
   "dependencies": {
     "dotenv": "^17.2.2",
-    "pg": "^8.16.3"
+    "pg": "^8.16.3",
+    "pg-format": "^1.0.4"
   }
 }
