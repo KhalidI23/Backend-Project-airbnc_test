@@ -1,7 +1,8 @@
 const db = require("./connection.js");
 const format = require("pg-format");
+const { createUserRef, formatProperties } = require("./utils");
 
-async function seed(propertyTypes, users) {
+async function seed(propertyTypes, users, reviews, properties) {
   try {
     await db.query(`DROP TABLE IF EXISTS reviews;`);
     await db.query(`DROP TABLE IF EXISTS properties;`);
@@ -62,9 +63,11 @@ async function seed(propertyTypes, users) {
       )
     );
 
-    await db.query(
+    const { rows: insertedUsers } = await db.query(
       format(
-        "INSERT INTO users (first_name, surname, email, phone_number, is_host, avatar) VALUES %L;",
+        `INSERT INTO users (first_name, surname, email, phone_number, is_host, avatar)
+         VALUES %L
+         RETURNING user_id, first_name, surname;`,
         users.map(
           ({ first_name, surname, email, phone_number, is_host, avatar }) => [
             first_name,
@@ -75,6 +78,18 @@ async function seed(propertyTypes, users) {
             avatar,
           ]
         )
+      )
+    );
+
+    const userRef = createUserRef(insertedUsers);
+    const formattedProps = formatProperties(properties, userRef);
+
+    await db.query(
+      format(
+        `INSERT INTO properties
+         (host_id, name, location, property_type, price_per_night, description)
+         VALUES %L;`,
+        formattedProps
       )
     );
   } catch (err) {
