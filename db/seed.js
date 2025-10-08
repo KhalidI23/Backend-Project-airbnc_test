@@ -1,8 +1,13 @@
 const db = require("./connection.js");
 const format = require("pg-format");
-const { createUserRef, formatProperties } = require("./utils");
+const {
+  createUserRef,
+  createPropertyRef,
+  formatProperties,
+  formatReviews,
+} = require("./utils");
 
-async function seed(propertyTypes, users, reviews, properties) {
+async function seed(propertyTypes, users, properties, reviews) {
   try {
     await db.query(`DROP TABLE IF EXISTS reviews;`);
     await db.query(`DROP TABLE IF EXISTS properties;`);
@@ -53,15 +58,17 @@ async function seed(propertyTypes, users, reviews, properties) {
       );
     `);
 
-    await db.query(
-      format(
-        "INSERT INTO property_types (property_type, description) VALUES %L;",
-        propertyTypes.map(({ property_type, description }) => [
-          property_type,
-          description,
-        ])
-      )
-    );
+    if (propertyTypes.length) {
+      await db.query(
+        format(
+          `INSERT INTO property_types (property_type, description) VALUES %L;`,
+          propertyTypes.map(({ property_type, description }) => [
+            property_type,
+            description,
+          ])
+        )
+      );
+    }
 
     const { rows: insertedUsers } = await db.query(
       format(
@@ -82,17 +89,39 @@ async function seed(propertyTypes, users, reviews, properties) {
     );
 
     const userRef = createUserRef(insertedUsers);
-    const formattedProps = formatProperties(properties, userRef);
+    const propRows = formatProperties(properties, userRef);
+    let insertedProps = [];
+    if (propRows.length) {
+      const res = await db.query(
+        format(
+          `INSERT INTO properties
+           (host_id, name, location, property_type, price_per_night, description)
+           VALUES %L
+           RETURNING property_id, name;`,
+          propRows
+        )
+      );
+      insertedProps = res.rows;
+    }
 
-    await db.query(
-      format(
-        `INSERT INTO properties
-         (host_id, name, location, property_type, price_per_night, description)
-         VALUES %L;`,
-        formattedProps
-      )
-    );
+    if (insertedProps.length && reviews.length) {
+      const propertyRef = createPropertyRef(insertedProps);
+      const reviewRows = formatReviews(reviews, userRef, propertyRef);
+      if (reviewRows.length) {
+        await db.query(
+          format(
+            `INSERT INTO reviews
+             (property_id, guest_id, rating, comment, created_at)
+             VALUES %L;`,
+            reviewRows
+          )
+        );
+      }
+    }
+
+    console.log("Seed complete");
   } catch (err) {
+    console.error("Seeding failed:", err);
   } finally {
     await db.end();
   }
