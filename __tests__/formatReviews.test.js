@@ -1,4 +1,4 @@
-const { formatReviews } = require("../utils");
+const { formatReviews } = require("../db/utils");
 
 describe("formatReviews", () => {
   test("returns empty array when given no reviews", () => {

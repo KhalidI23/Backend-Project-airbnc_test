@@ -1,4 +1,4 @@
-const { formatProperties } = require("../utils");
+const { formatProperties } = require("../db/utils");
 
 describe("formatProperties", () => {
   test("returns empty array when passed no data", () => {

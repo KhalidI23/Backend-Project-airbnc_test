@@ -1,4 +1,4 @@
-const { createPropertyRef } = require("../utils");
+const { createPropertyRef } = require("../db/utils");
 
 describe("createPropertyRef", () => {
   test("returns empty object when passed empty array", () => {

@@ -1,13 +1,15 @@
-const http = require("http");
-const db = require("./connection");
+const express = require("express");
+const app = express();
+const db = require("./db/connection");
 
-const app = http.createServer(async (req, res) => {
-  const { url, method } = req;
+app.use(express.json());
 
-  if (method === "GET" && url === "/api/properties;") {
-    const { rows: properties } = await db.query("SELECT * FROM properties;");
-
-    console.log(properties);
+app.get("/api/properties", async (req, res, next) => {
+  try {
+    const result = await db.query("SELECT * FROM properties;");
+    res.status(200).json({ properties: result.rows });
+  } catch (err) {
+    next(err);
   }
 });
 

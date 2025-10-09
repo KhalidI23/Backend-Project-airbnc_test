@@ -1,4 +1,4 @@
-const { createUserRef } = require("../utils");
+const { createUserRef } = require("../db/utils");
 
 describe("createUserRef", () => {
   test("returns empty object when passed empty array", () => {
