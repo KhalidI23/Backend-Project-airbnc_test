@@ -39,3 +39,51 @@ describe("app", () => {
     });
   });
 });
+
+describe("/api/properties/:property_id", () => {
+  describe("GET", () => {
+    test("200: responds with a single property object containing expected keys", async () => {
+      const { body, status } = await request(app).get("/api/properties/1");
+
+      expect(status).toBe(200);
+      expect(body).toHaveProperty("property");
+
+      expect(body.property).toEqual(
+        expect.objectContaining({
+          property_id: expect.any(Number),
+          property_name: expect.any(String),
+          location: expect.any(String),
+          property_type: expect.any(String),
+          price_per_night: expect.any(String),
+          description: expect.any(String),
+          host_id: expect.any(Number),
+        })
+      );
+    });
+
+    test("404: responds with a not found message when property_id does not exist", async () => {
+      const { body, status } = await request(app).get("/api/properties/999999");
+      expect(status).toBe(404);
+      expect(body).toEqual({ msg: "Property not found" });
+    });
+
+    test("400: responds with bad request for invalid property_id type", async () => {
+      const { body, status } = await request(app).get(
+        "/api/properties/invalid number"
+      );
+      expect(status).toBe(400);
+      expect(body).toEqual({ msg: "Invalid property ID" });
+    });
+  });
+});
+
+describe("/api/properties (sorting)", () => {
+  test("200: returns properties sorted by price_per_night ascending by default", async () => {
+    const { body } = await request(app).get(
+      "/api/properties?sort_by=price_per_night"
+    );
+    expect(body.properties).toBeSortedBy("price_per_night", {
+      ascending: true,
+    });
+  });
+});
