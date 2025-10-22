@@ -1,10 +1,41 @@
 const db = require("../db/connection");
 
-exports.selectAllProperties = async () => {
-  const { rows } = await db.query(`
-    SELECT property_id, host_id, name, location, property_type, price_per_night, description
-    FROM properties;
-  `);
+exports.selectAllProperties = async (
+  sort_by = "property_id",
+  order = "asc"
+) => {
+  const validColumns = [
+    "property_id",
+    "host_id",
+    "name",
+    "location",
+    "property_type",
+    "price_per_night",
+    "description",
+  ];
+  const validOrders = ["asc", "desc"];
+
+  if (!validColumns.includes(sort_by)) {
+    throw { status: 400, msg: "Invalid sort" };
+  }
+  if (!validOrders.includes(order.toLowerCase())) {
+    throw { status: 400, msg: "Invalid order" };
+  }
+
+  const queryStr = `
+    SELECT 
+      property_id, 
+      host_id, 
+      name, 
+      location, 
+      property_type, 
+      price_per_night::FLOAT AS price_per_night, 
+      description
+    FROM properties
+    ORDER BY ${sort_by} ${order.toUpperCase()};
+  `;
+
+  const { rows } = await db.query(queryStr);
   return rows;
 };
 
@@ -16,7 +47,7 @@ exports.selectPropertyById = async (property_id) => {
       p.name AS property_name,
       p.location,
       p.property_type,
-      p.price_per_night,
+      p.price_per_night::FLOAT AS price_per_night,
       p.description,
       p.host_id
     FROM properties p

@@ -1,3 +1,4 @@
+require("jest-sorted");
 const request = require("supertest");
 const app = require("../app.js");
 describe("app", () => {
@@ -30,7 +31,7 @@ describe("app", () => {
               name: expect.any(String),
               location: expect.any(String),
               property_type: expect.any(String),
-              price_per_night: expect.any(String),
+              price_per_night: expect.any(Number),
               description: expect.any(String),
             })
           );
@@ -54,7 +55,7 @@ describe("/api/properties/:property_id", () => {
           property_name: expect.any(String),
           location: expect.any(String),
           property_type: expect.any(String),
-          price_per_night: expect.any(String),
+          price_per_night: expect.any(Number),
           description: expect.any(String),
           host_id: expect.any(Number),
         })
@@ -85,5 +86,30 @@ describe("/api/properties (sorting)", () => {
     expect(body.properties).toBeSortedBy("price_per_night", {
       ascending: true,
     });
+  });
+
+  test("200: returns properties sorted by price_per_night descending when order=desc", async () => {
+    const { body } = await request(app).get(
+      "/api/properties?sort_by=price_per_night&order=desc"
+    );
+    expect(body.properties).toBeSortedBy("price_per_night", {
+      descending: true,
+    });
+  });
+
+  test("400: responds with 'Invalid sort column' for bad sort_by value", async () => {
+    const { body, status } = await request(app).get(
+      "/api/properties?sort_by=not_a_column"
+    );
+    expect(status).toBe(400);
+    expect(body.msg).toBe("Invalid sort");
+  });
+
+  test("400: responds with 'Invalid order' for bad order value", async () => {
+    const { body, status } = await request(app).get(
+      "/api/properties?order=sideways"
+    );
+    expect(status).toBe(400);
+    expect(body.msg).toBe("Invalid order");
   });
 });

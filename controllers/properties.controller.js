@@ -4,8 +4,10 @@ const {
 } = require("../models/properties.model");
 
 exports.getAllProperties = async (req, res, next) => {
+  const { sort_by = "property_id", order = "asc" } = req.query;
+
   try {
-    const properties = await selectAllProperties();
+    const properties = await selectAllProperties(sort_by, order);
     res.status(200).json({ properties });
   } catch (err) {
     next(err);
@@ -28,6 +30,17 @@ exports.getPropertyById = async (req, res, next) => {
     }
 
     res.status(200).json({ property });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getAllProperties = async (req, res, next) => {
+  const { sort_by = "property_id", order = "asc" } = req.query;
+
+  try {
+    const properties = await selectAllProperties(sort_by, order);
+    res.status(200).json({ properties });
   } catch (err) {
     next(err);
   }
