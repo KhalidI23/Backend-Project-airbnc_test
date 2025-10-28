@@ -164,3 +164,39 @@ describe("/api/properties/:property_id/reviews", () => {
     });
   });
 });
+
+describe("/api/properties/:property_id/reviews", () => {
+  describe("POST", () => {
+    test("201: inserts a new review and responds with the created review object", async () => {
+      const newReview = {
+        guest_id: 1,
+        rating: 5,
+        comment: "Lovely property!",
+      };
+
+      const { body, status } = await request(app)
+        .post("/api/properties/1/reviews")
+        .send(newReview);
+
+      expect(status).toBe(201);
+      expect(body.review).toEqual(
+        expect.objectContaining({
+          review_id: expect.any(Number),
+          property_id: 1,
+          guest_id: 1,
+          rating: 5,
+          comment: "Lovely property!",
+          created_at: expect.any(String),
+        })
+      );
+    });
+
+    test("400: responds with error when missing required fields", async () => {
+      const { body, status } = await request(app)
+        .post("/api/properties/1/reviews")
+        .send({ guest_id: 1, rating: 5 });
+      expect(status).toBe(400);
+      expect(body).toEqual({ msg: "Missing required fields" });
+    });
+  });
+});

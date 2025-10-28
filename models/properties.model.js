@@ -102,3 +102,36 @@ exports.selectReviewsByPropertyId = async (property_id) => {
 
   return { reviews: rows, average_rating };
 };
+
+exports.insertReviewByPropertyId = async (
+  property_id,
+  guest_id,
+  rating,
+  comment
+) => {
+  const queryStr = `
+    INSERT INTO reviews (property_id, guest_id, rating, comment)
+    VALUES ($1, $2, $3, $4)
+    RETURNING review_id, property_id, guest_id, rating, comment, created_at;
+  `;
+
+  try {
+    const { rows } = await db.query(queryStr, [
+      property_id,
+      guest_id,
+      rating,
+      comment,
+    ]);
+
+    if (rows.length === 0) {
+      throw { status: 404, msg: "Property not found" };
+    }
+
+    return rows[0];
+  } catch (err) {
+    if (err.code === "23503") {
+      throw { status: 404, msg: "Property or guest not found" };
+    }
+    throw err;
+  }
+};

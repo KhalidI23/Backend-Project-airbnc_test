@@ -2,6 +2,7 @@ const {
   selectAllProperties,
   selectPropertyById,
   selectReviewsByPropertyId,
+  insertReviewByPropertyId,
 } = require("../models/properties.model");
 
 exports.getAllProperties = async (req, res, next) => {
@@ -52,6 +53,31 @@ exports.getReviewsByPropertyId = async (req, res, next) => {
     }
 
     res.status(200).json({ reviews, average_rating });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.postReviewByPropertyId = async (req, res, next) => {
+  const { property_id } = req.params;
+  const { guest_id, rating, comment } = req.body;
+
+  if (!guest_id || !rating || !comment) {
+    return res.status(400).json({ msg: "Missing required fields" });
+  }
+
+  if (isNaN(property_id) || isNaN(guest_id) || isNaN(rating)) {
+    return res.status(400).json({ msg: "Invalid data type" });
+  }
+
+  try {
+    const newReview = await insertReviewByPropertyId(
+      property_id,
+      guest_id,
+      rating,
+      comment
+    );
+    res.status(201).json({ review: newReview });
   } catch (err) {
     next(err);
   }
