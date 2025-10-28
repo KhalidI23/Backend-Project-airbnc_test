@@ -6,6 +6,7 @@ const {
   getPropertyById,
   getReviewsByPropertyId,
   postReviewByPropertyId,
+  getUserById,
 } = require("./controllers/properties.controller");
 
 app.use(express.json());
@@ -14,6 +15,7 @@ app.get("/api/properties", getAllProperties);
 app.get("/api/properties/:property_id", getPropertyById);
 app.get("/api/properties/:property_id/reviews", getReviewsByPropertyId);
 app.post("/api/properties/:property_id/reviews", postReviewByPropertyId);
+app.get("/api/users/:id", getUserById);
 
 // Error handlers
 app.use((err, req, res, next) => {

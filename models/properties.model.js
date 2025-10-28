@@ -132,6 +132,33 @@ exports.insertReviewByPropertyId = async (
     if (err.code === "23503") {
       throw { status: 404, msg: "Property or guest not found" };
     }
+    if (err.code === "23505") {
+      throw { status: 409, msg: "User has already reviewed this property" };
+    }
     throw err;
   }
+};
+
+exports.selectUserById = async (user_id) => {
+  const { rows } = await db.query(
+    `
+    SELECT 
+      user_id,
+      first_name,
+      surname,
+      email,
+      phone_number,
+      avatar,
+      created_at
+    FROM users
+    WHERE user_id = $1;
+    `,
+    [user_id]
+  );
+
+  if (rows.length === 0) {
+    throw { status: 404, msg: "User not found" };
+  }
+
+  return rows[0];
 };

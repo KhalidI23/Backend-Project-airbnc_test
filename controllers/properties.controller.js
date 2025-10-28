@@ -3,6 +3,7 @@ const {
   selectPropertyById,
   selectReviewsByPropertyId,
   insertReviewByPropertyId,
+  selectUserById,
 } = require("../models/properties.model");
 
 exports.getAllProperties = async (req, res, next) => {
@@ -78,6 +79,21 @@ exports.postReviewByPropertyId = async (req, res, next) => {
       comment
     );
     res.status(201).json({ review: newReview });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getUserById = async (req, res, next) => {
+  const { id } = req.params;
+
+  if (Number.isNaN(Number(id))) {
+    return next({ status: 400, msg: "Invalid user ID" });
+  }
+
+  try {
+    const user = await selectUserById(id);
+    res.status(200).json({ user });
   } catch (err) {
     next(err);
   }

@@ -169,7 +169,7 @@ describe("/api/properties/:property_id/reviews", () => {
   describe("POST", () => {
     test("201: inserts a new review and responds with the created review object", async () => {
       const newReview = {
-        guest_id: 1,
+        guest_id: 2,
         rating: 5,
         comment: "Lovely property!",
       };
@@ -183,7 +183,7 @@ describe("/api/properties/:property_id/reviews", () => {
         expect.objectContaining({
           review_id: expect.any(Number),
           property_id: 1,
-          guest_id: 1,
+          guest_id: 2,
           rating: 5,
           comment: "Lovely property!",
           created_at: expect.any(String),
@@ -198,5 +198,37 @@ describe("/api/properties/:property_id/reviews", () => {
       expect(status).toBe(400);
       expect(body).toEqual({ msg: "Missing required fields" });
     });
+  });
+});
+
+describe("/api/users/:id", () => {
+  test("200: responds with a single user object with expected keys", async () => {
+    const { body, status } = await request(app).get("/api/users/1");
+
+    expect(status).toBe(200);
+    expect(body).toHaveProperty("user");
+    expect(body.user).toEqual(
+      expect.objectContaining({
+        user_id: expect.any(Number),
+        first_name: expect.any(String),
+        surname: expect.any(String),
+        email: expect.any(String),
+        phone_number: expect.any(String),
+        avatar: expect.any(String),
+        created_at: expect.any(String),
+      })
+    );
+  });
+
+  test("404: responds with not found when user does not exist", async () => {
+    const { body, status } = await request(app).get("/api/users/999999");
+    expect(status).toBe(404);
+    expect(body).toEqual({ msg: "User not found" });
+  });
+
+  test("400: responds with bad request for invalid id type", async () => {
+    const { body, status } = await request(app).get("/api/users/not-a-number");
+    expect(status).toBe(400);
+    expect(body).toEqual({ msg: "Invalid user ID" });
   });
 });
