@@ -1,6 +1,7 @@
 const {
   selectAllProperties,
   selectPropertyById,
+  selectReviewsByPropertyId,
 } = require("../models/properties.model");
 
 exports.getAllProperties = async (req, res, next) => {
@@ -30,6 +31,27 @@ exports.getPropertyById = async (req, res, next) => {
     }
 
     res.status(200).json({ property });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getReviewsByPropertyId = async (req, res, next) => {
+  const { property_id } = req.params;
+
+  if (Number.isNaN(Number(property_id))) {
+    return next({ status: 400, msg: "Invalid property ID" });
+  }
+
+  try {
+    const { reviews, average_rating } = await selectReviewsByPropertyId(
+      property_id
+    );
+    if (!reviews || reviews.length === 0) {
+      return next({ status: 404, msg: "Property not found" });
+    }
+
+    res.status(200).json({ reviews, average_rating });
   } catch (err) {
     next(err);
   }

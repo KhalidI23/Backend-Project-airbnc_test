@@ -4,12 +4,14 @@ const app = express();
 const {
   getAllProperties,
   getPropertyById,
+  getReviewsByPropertyId,
 } = require("./controllers/properties.controller");
 
 app.use(express.json());
 
 app.get("/api/properties", getAllProperties);
 app.get("/api/properties/:property_id", getPropertyById);
+app.get("/api/properties/:property_id/reviews", getReviewsByPropertyId);
 
 // Error handlers
 app.use((err, req, res, next) => {

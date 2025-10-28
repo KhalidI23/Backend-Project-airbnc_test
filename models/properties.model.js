@@ -62,3 +62,43 @@ exports.selectPropertyById = async (property_id) => {
 
   return rows[0];
 };
+
+exports.selectReviewsByPropertyId = async (property_id) => {
+  const queryStr = `
+    SELECT 
+      r.review_id,
+      r.comment,
+      r.rating,
+      r.created_at,
+      CONCAT(u.first_name, ' ', u.surname) AS guest,
+      u.avatar AS guest_avatar
+    FROM reviews r
+    JOIN users u ON r.guest_id = u.user_id
+    WHERE r.property_id = $1
+    ORDER BY r.created_at DESC;
+  `;
+
+  const { rows } = await db.query(queryStr, [property_id]);
+
+  if (rows.length === 0) {
+    const propertyCheck = await db.query(
+      `SELECT * FROM properties WHERE property_id = $1;`,
+      [property_id]
+    );
+    if (propertyCheck.rows.length === 0) {
+      throw { status: 404, msg: "Property not found" };
+    }
+  }
+
+  const average_rating =
+    rows.length === 0
+      ? 0
+      : Number(
+          (
+            rows.reduce((acc, curr) => acc + Number(curr.rating), 0) /
+            rows.length
+          ).toFixed(2)
+        );
+
+  return { reviews: rows, average_rating };
+};

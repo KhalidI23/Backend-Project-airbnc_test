@@ -113,3 +113,54 @@ describe("/api/properties (sorting)", () => {
     expect(body.msg).toBe("Invalid order");
   });
 });
+
+describe("/api/properties/:property_id/reviews", () => {
+  describe("GET", () => {
+    test("200: responds with reviews for the given property, sorted by date desc", async () => {
+      const { body, status } = await request(app).get(
+        "/api/properties/1/reviews"
+      );
+
+      expect(status).toBe(200);
+      expect(body).toHaveProperty("reviews");
+      expect(Array.isArray(body.reviews)).toBe(true);
+      expect(body.reviews.length).toBeGreaterThan(0);
+
+      body.reviews.forEach((review) => {
+        expect(review).toEqual(
+          expect.objectContaining({
+            review_id: expect.any(Number),
+            comment: expect.any(String),
+            rating: expect.any(Number),
+            created_at: expect.any(String),
+            guest: expect.any(String),
+            guest_avatar: expect.any(String),
+          })
+        );
+      });
+
+      expect(body.reviews).toBeSortedBy("created_at", { descending: true });
+
+      expect(body).toHaveProperty("average_rating");
+      expect(typeof body.average_rating).toBe("number");
+      expect(body.average_rating).toBeGreaterThanOrEqual(0);
+      expect(body.average_rating).toBeLessThanOrEqual(5);
+    });
+
+    test("404: responds with not found if property_id does not exist", async () => {
+      const { body, status } = await request(app).get(
+        "/api/properties/9999/reviews"
+      );
+      expect(status).toBe(404);
+      expect(body).toEqual({ msg: "Property not found" });
+    });
+
+    test("400: responds with bad request for invalid property_id type", async () => {
+      const { body, status } = await request(app).get(
+        "/api/properties/invalid/reviews"
+      );
+      expect(status).toBe(400);
+      expect(body).toEqual({ msg: "Invalid property ID" });
+    });
+  });
+});
