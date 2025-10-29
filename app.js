@@ -6,6 +6,7 @@ const {
   getPropertyById,
   getReviewsByPropertyId,
   postReviewByPropertyId,
+  deleteReview,
   getUserById,
 } = require("./controllers/properties.controller");
 
@@ -16,6 +17,7 @@ app.get("/api/properties/:property_id", getPropertyById);
 app.get("/api/properties/:property_id/reviews", getReviewsByPropertyId);
 app.post("/api/properties/:property_id/reviews", postReviewByPropertyId);
 app.get("/api/users/:id", getUserById);
+app.delete("/api/reviews/:id", deleteReview);
 
 // Error handlers
 app.use((err, req, res, next) => {

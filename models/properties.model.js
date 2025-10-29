@@ -64,7 +64,7 @@ exports.selectPropertyById = async (property_id) => {
 };
 
 exports.selectReviewsByPropertyId = async (property_id) => {
-  const queryStr = `
+  const reviewsQuery = `
     SELECT 
       r.review_id,
       r.comment,
@@ -78,16 +78,15 @@ exports.selectReviewsByPropertyId = async (property_id) => {
     ORDER BY r.created_at DESC;
   `;
 
-  const { rows } = await db.query(queryStr, [property_id]);
+  const { rows } = await db.query(reviewsQuery, [property_id]);
 
-  if (rows.length === 0) {
-    const propertyCheck = await db.query(
-      `SELECT * FROM properties WHERE property_id = $1;`,
-      [property_id]
-    );
-    if (propertyCheck.rows.length === 0) {
-      throw { status: 404, msg: "Property not found" };
-    }
+  const propertyCheck = await db.query(
+    `SELECT * FROM properties WHERE property_id = $1;`,
+    [property_id]
+  );
+
+  if (propertyCheck.rowCount === 0) {
+    throw { status: 404, msg: "Property not found" };
   }
 
   const average_rating =
@@ -109,31 +108,43 @@ exports.insertReviewByPropertyId = async (
   rating,
   comment
 ) => {
-  const queryStr = `
-    INSERT INTO reviews (property_id, guest_id, rating, comment)
-    VALUES ($1, $2, $3, $4)
-    RETURNING review_id, property_id, guest_id, rating, comment, created_at;
-  `;
-
   try {
-    const { rows } = await db.query(queryStr, [
-      property_id,
-      guest_id,
-      rating,
-      comment,
-    ]);
+    // Check property and guest exist first
+    const propertyCheck = await db.query(
+      `SELECT property_id FROM properties WHERE property_id = $1;`,
+      [property_id]
+    );
+    const guestCheck = await db.query(
+      `SELECT user_id FROM users WHERE user_id = $1;`,
+      [guest_id]
+    );
 
-    if (rows.length === 0) {
-      throw { status: 404, msg: "Property not found" };
+    if (propertyCheck.rowCount === 0 || guestCheck.rowCount === 0) {
+      throw { status: 404, msg: "Property or guest not found" };
     }
+
+    const duplicateCheck = await db.query(
+      `SELECT review_id FROM reviews WHERE property_id = $1 AND guest_id = $2;`,
+      [property_id, guest_id]
+    );
+
+    if (duplicateCheck.rowCount > 0) {
+      throw { status: 409, msg: "User has already reviewed this property" };
+    }
+
+    const { rows } = await db.query(
+      `
+      INSERT INTO reviews (property_id, guest_id, rating, comment)
+      VALUES ($1, $2, $3, $4)
+      RETURNING review_id, property_id, guest_id, rating, comment, created_at;
+      `,
+      [property_id, guest_id, rating, comment]
+    );
 
     return rows[0];
   } catch (err) {
-    if (err.code === "23503") {
-      throw { status: 404, msg: "Property or guest not found" };
-    }
-    if (err.code === "23505") {
-      throw { status: 409, msg: "User has already reviewed this property" };
+    if (err.code === "22P02") {
+      throw { status: 400, msg: "Invalid property ID" };
     }
     throw err;
   }
@@ -161,4 +172,17 @@ exports.selectUserById = async (user_id) => {
   }
 
   return rows[0];
+};
+
+exports.deleteReviewById = async (review_id) => {
+  const result = await db.query(
+    `DELETE FROM reviews WHERE review_id = $1 RETURNING *;`,
+    [review_id]
+  );
+
+  if (result.rowCount === 0) {
+    throw { status: 404, msg: "Review not found" };
+  }
+
+  return;
 };
