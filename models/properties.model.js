@@ -2,7 +2,10 @@ const db = require("../db/connection");
 
 exports.selectAllProperties = async (
   sort_by = "property_id",
-  order = "asc"
+  order = "asc",
+  minprice,
+  maxprice,
+  property_type
 ) => {
   const validColumns = [
     "property_id",
@@ -22,6 +25,29 @@ exports.selectAllProperties = async (
     throw { status: 400, msg: "Invalid order" };
   }
 
+  const queryParams = [];
+  const conditions = [];
+
+  if (minprice !== undefined) {
+    if (isNaN(minprice)) throw { status: 400, msg: "Invalid minprice value" };
+    queryParams.push(minprice);
+    conditions.push(`price_per_night >= $${queryParams.length}`);
+  }
+
+  if (maxprice !== undefined) {
+    if (isNaN(maxprice)) throw { status: 400, msg: "Invalid maxprice value" };
+    queryParams.push(maxprice);
+    conditions.push(`price_per_night <= $${queryParams.length}`);
+  }
+
+  if (property_type !== undefined) {
+    queryParams.push(property_type);
+    conditions.push(`LOWER(property_type) = LOWER($${queryParams.length})`);
+  }
+
+  const whereClause =
+    conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
   const queryStr = `
     SELECT 
       property_id, 
@@ -32,10 +58,11 @@ exports.selectAllProperties = async (
       price_per_night::FLOAT AS price_per_night, 
       description
     FROM properties
+    ${whereClause}
     ORDER BY ${sort_by} ${order.toUpperCase()};
   `;
 
-  const { rows } = await db.query(queryStr);
+  const { rows } = await db.query(queryStr, queryParams);
   return rows;
 };
 

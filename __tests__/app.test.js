@@ -115,6 +115,35 @@ describe("app", () => {
       expect(status).toBe(400);
       expect(body.msg).toBe("Invalid order");
     });
+    test("200: filters properties by property_type", async () => {
+      const { body, status } = await request(app).get(
+        "/api/properties?property_type=Apartment"
+      );
+      expect(status).toBe(200);
+      expect(body.properties.length).toBeGreaterThan(0);
+      body.properties.forEach((p) => {
+        expect(p.property_type.toLowerCase()).toBe("apartment");
+      });
+    });
+
+    test("200: filters properties by minprice and maxprice", async () => {
+      const { body, status } = await request(app).get(
+        "/api/properties?minprice=100&maxprice=250"
+      );
+      expect(status).toBe(200);
+      body.properties.forEach((p) => {
+        expect(p.price_per_night).toBeGreaterThanOrEqual(100);
+        expect(p.price_per_night).toBeLessThanOrEqual(250);
+      });
+    });
+
+    test("400: responds with error for invalid minprice", async () => {
+      const { body, status } = await request(app).get(
+        "/api/properties?minprice=cheap"
+      );
+      expect(status).toBe(400);
+      expect(body).toEqual({ msg: "Invalid minprice value" });
+    });
   });
 
   describe("/api/properties/:property_id/reviews", () => {

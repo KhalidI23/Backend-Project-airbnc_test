@@ -8,9 +8,22 @@ const {
 } = require("../models/properties.model");
 
 exports.getAllProperties = async (req, res, next) => {
-  const { sort_by = "property_id", order = "asc" } = req.query;
+  const {
+    sort_by = "property_id",
+    order = "asc",
+    minprice,
+    maxprice,
+    property_type,
+  } = req.query;
+
   try {
-    const properties = await selectAllProperties(sort_by, order);
+    const properties = await selectAllProperties(
+      sort_by,
+      order,
+      minprice,
+      maxprice,
+      property_type
+    );
     res.status(200).json({ properties });
   } catch (err) {
     next(err);
