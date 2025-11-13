@@ -2,10 +2,11 @@
   "name": "backend-project-airbnc_test",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "listen.js",
   "scripts": {
     "test": "jest",
     "seed": "node db/seed-run.js",
+    "seed-prod": "NODE_ENV=production npm run seed",
     "dev": "nodemon listen.js",
     "start": "node listen.js"
   },
